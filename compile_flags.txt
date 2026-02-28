@@ -1,0 +1,11 @@
+-Wall
+-Wextra
+-std=c11
+-Isrc
+-lflecs
+-lraylib
+-lm
+-DIMPL_graphics
+-DIMPL_main
+-DIMPL_physics
+-DIMPL_utils
