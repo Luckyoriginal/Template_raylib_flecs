@@ -7,13 +7,13 @@
 #include <string.h>
 #include <math.h>
 
-void ImportPhysic(ecs_world_t *ecs, int algorithm);
-
 /* ── Broadphase algorithm selector ───────────────────────────────── */
-#define BROADPHASE_BRUTE    0   /* O(n²)         — simple, always correct          */
-#define BROADPHASE_SAP      1   /* O(n log n + k) — sort & sweep on X axis         */
-#define BROADPHASE_GRID     2   /* O(n)           — uniform grid, best same-size   */
-#define BROADPHASE_QUADTREE 3   /* O(n log n + k) — best for clustered/varying     */
+#define BROADPHASE_BRUTE    0   /* O(n²)          — simple, always correct          */
+#define BROADPHASE_SAP      1   /* O(n log n + k) — sort & sweep on X axis          */
+#define BROADPHASE_GRID     2   /* O(n)           — uniform grid, best same-size    */
+#define BROADPHASE_QUADTREE 3   /* O(n log n + k) — best for clustered/varying      */
+
+/* ── declarations ─────────────────────────────────────────────────── */
 
 typedef struct {
     int x, y, w, h;
@@ -23,10 +23,20 @@ typedef struct {
 extern ECS_COMPONENT_DECLARE(Collider);
 extern ecs_entity_t OnCollision;
 
+void PhysicModuleImport(ecs_world_t *ecs);
+void PhysicSetAlgorithm(int algorithm);
+
+/* ── definitions ──────────────────────────────────────────────────── */
 #ifdef IMPL_physics
 
 ECS_COMPONENT_DECLARE(Collider);
 ecs_entity_t OnCollision;
+
+static int _algorithm = BROADPHASE_BRUTE;
+
+void PhysicSetAlgorithm(int algorithm) {
+    _algorithm = algorithm;
+}
 
 /* ── shared helpers ─────────────────────────────────────────────── */
 
@@ -285,8 +295,6 @@ static void broadphase_quadtree(ecs_iter_t *it, Collider *c, int n) {
  * SYSTEM DISPATCH
  * ══════════════════════════════════════════════════════════════════ */
 
-static int _algorithm = BROADPHASE_BRUTE;
-
 void BroadPhaseCollision(ecs_iter_t *it) {
     Collider *c = ecs_field(it, Collider, 0);
     int n = it->count;
@@ -309,16 +317,11 @@ void DebugCollision(ecs_iter_t *it) {
     }
 }
 
-void ImportPhysic(ecs_world_t *ecs, int algorithm) {
-    _algorithm = algorithm;
-
+void PhysicModuleImport(ecs_world_t *ecs) {
     ECS_MODULE(ecs, PhysicModule);
     ECS_COMPONENT_DEFINE(ecs, Collider);
-
     OnCollision = ecs_new(ecs);
-
     ECS_SYSTEM(ecs, BroadPhaseCollision, EcsOnUpdate, Collider);
-
     ecs_observer(ecs, {
         .query.terms = {{ ecs_id(Collider) }},
         .events      = { OnCollision },
