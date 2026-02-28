@@ -12,13 +12,13 @@ typedef struct {
 
 extern ECS_COMPONENT_DECLARE(Box);
 
-void ImportGraphic(ecs_world_t* ecs);
+void GraphicModuleImport(ecs_world_t* ecs);
 void DrawBoxSystem(ecs_iter_t* it);
 
 #ifdef IMPL_graphics
 ECS_COMPONENT_DECLARE(Box);
 
-void ImportGraphic(ecs_world_t* ecs){
+void GraphicModuleImport(ecs_world_t* ecs){
 	ECS_MODULE(ecs, GraphicModule);
 	ECS_COMPONENT_DEFINE(ecs, Box);
 	ECS_SYSTEM(ecs,DrawBoxSystem,EcsOnUpdate, Box);
