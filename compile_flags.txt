@@ -8,4 +8,5 @@
 -DIMPL_graphics
 -DIMPL_main
 -DIMPL_physics
+-DIMPL_utility
 -DIMPL_utils

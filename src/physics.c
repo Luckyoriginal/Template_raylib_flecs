@@ -20,9 +20,14 @@ typedef struct {
     ecs_entity_t other;
 } Collider;
 
+typedef struct {
+	int x,y;
+}Velocity;
+
 extern ECS_COMPONENT_DECLARE(Collider);
 extern ecs_entity_t OnCollision;
 
+extern ECS_COMPONENT_DECLARE(Velocity);
 void PhysicModuleImport(ecs_world_t *ecs);
 void PhysicSetAlgorithm(int algorithm);
 
@@ -30,6 +35,7 @@ void PhysicSetAlgorithm(int algorithm);
 #ifdef IMPL_physics
 
 ECS_COMPONENT_DECLARE(Collider);
+ECS_COMPONENT_DECLARE(Velocity);
 ecs_entity_t OnCollision;
 
 static int _algorithm = BROADPHASE_BRUTE;
@@ -317,11 +323,22 @@ void DebugCollision(ecs_iter_t *it) {
     }
 }
 
+void MoveSystem(ecs_iter_t* it){
+	Collider* collider = ecs_field(it, Collider, 0);
+	Velocity* velocity = ecs_field(it, Velocity, 1);
+	for (int i=0;i<it->count;i++){
+		collider[i].x += velocity[i].x;
+		collider[i].y += velocity[i].y;
+	}
+}
+
 void PhysicModuleImport(ecs_world_t *ecs) {
     ECS_MODULE(ecs, PhysicModule);
     ECS_COMPONENT_DEFINE(ecs, Collider);
+    ECS_COMPONENT_DEFINE(ecs, Velocity);
     OnCollision = ecs_new(ecs);
     ECS_SYSTEM(ecs, BroadPhaseCollision, EcsOnUpdate, Collider);
+    ECS_SYSTEM(ecs, MoveSystem, EcsOnUpdate, Collider, Velocity);
     ecs_observer(ecs, {
         .query.terms = {{ ecs_id(Collider) }},
         .events      = { OnCollision },
